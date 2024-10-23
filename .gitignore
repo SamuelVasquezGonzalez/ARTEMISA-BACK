@@ -1,0 +1,14 @@
+# Ignorar el archivo .env
+.env
+
+# Ignorar la carpeta node_modules
+node_modules/
+
+# Ignorar otros archivos y carpetas comunes (opcional)
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+dist/
+build/
+*.log
