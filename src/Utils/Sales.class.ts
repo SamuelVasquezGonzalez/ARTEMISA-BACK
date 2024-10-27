@@ -1,10 +1,8 @@
 import { ProductsModel } from "../Models/Products";
 import { SalesModel } from "../Models/Sales";
 import { ResponseErrors } from "../Types/Extends";
-import { IProduct, ISales } from "../Types/Interfaces";
+import { ISales } from "../Types/Interfaces";
 import { ERROR_TYPES, SUCCESS_TYPES } from "../Types/Responses";
-import { Picture } from "../Types/Types";
-import { deleteCloudinarImage, uploadCloudinaryImage } from "./Cloudinary";
 
 
 export class Sales {

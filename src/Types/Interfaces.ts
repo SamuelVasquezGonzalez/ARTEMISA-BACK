@@ -8,6 +8,7 @@ export interface IProduct extends Document {
     stock: number,
     picture: Picture,
     created: Date
+    buyPrice: number
 }
 
 export interface IProductSale extends IProduct{

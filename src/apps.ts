@@ -6,6 +6,7 @@ import morgan from "morgan";
 import AdminsRoutes from './Routes/Admin.routes'
 import ProductsRoutes from './Routes/Products.routes'
 import SalesRoutes from './Routes/Sales.routes'
+import StatsRoutes from './Routes/Stats.routes'
 
 
 export const app = express();
@@ -36,6 +37,7 @@ app.get("/", (req: Request, res: Response) => {
 app.use(AdminsRoutes)
 app.use(ProductsRoutes)
 app.use(SalesRoutes)
+app.use(StatsRoutes)
 
 
 

@@ -104,6 +104,7 @@ export class Products {
             const newInfo: Partial<IProduct> = {
                 name: data.name || verifyProduct?.name,
                 price: data.price || verifyProduct?.price,
+                buyPrice: data.buyPrice || verifyProduct?.buyPrice,
                 category: data.category || verifyProduct?.category,
                 stock: data.stock,
                 picture: image || verifyProduct.picture || DEFAULT_PIC

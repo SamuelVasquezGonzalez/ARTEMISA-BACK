@@ -1,17 +1,8 @@
 import { AdminModel } from "../Models/Admin";
-import { ProductsModel } from "../Models/Products";
 import { ResponseErrors } from "../Types/Extends";
-import { Admin, IProduct } from "../Types/Interfaces";
+import { Admin } from "../Types/Interfaces";
 import { ERROR_TYPES, SUCCESS_TYPES } from "../Types/Responses";
-import { Picture } from "../Types/Types";
-import { deleteCloudinarImage, uploadCloudinaryImage } from "./Cloudinary";
 import bcrypt from 'bcrypt'
-
-const DEFAULT_PIC = {
-    url: "https://res.cloudinary.com/appsftw/image/upload/v1725911983/mayw65ww5edphgs4rfng.jpg",
-    public_id: "",
-}
-
 export class Admins {
     data?: Admin;
     _id?: string;
