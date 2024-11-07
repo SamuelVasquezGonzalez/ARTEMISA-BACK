@@ -43,6 +43,7 @@ export const getFilteredProducts = async (req: Request, res: Response) => {
 
     try {
         const skip = (Number(page) - 1) * Number(limit);
+        
 
         // Filtro para la categoría
         const filterConditions: any = {};
@@ -66,12 +67,15 @@ export const getFilteredProducts = async (req: Request, res: Response) => {
             .lean();
 
         const totalProducts = await ProductsModel.countDocuments(filterConditions);
+        const totalPages = Math.ceil(totalProducts / Number(limit));
 
         res.json({
             data: products,
-            totalProducts,
-            totalPages: Math.ceil(totalProducts / Number(limit)),
-            currentPage: Number(page),
+            pagination: {
+                currentPage: Number(page),
+                totalPages,
+                totalProducts,
+            }
         });
     } catch (err: any) {
         return res.status(err.code || 500).json({
