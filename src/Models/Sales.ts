@@ -16,6 +16,7 @@ const ProductSale: Schema = new Schema ({
 })
 
 const SalesSchema: Schema = new Schema({
+    isForAll: {type: Boolean, default: false},
     idClient: {type: String, default: ""},
     totalPrice: {type: Number, require: true, default: 0},
     created: {type: Date, default: new Date()},

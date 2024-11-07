@@ -20,14 +20,57 @@ export class Products {
     }
 
 
-    async getProducts () {
+    async getProducts(skip: number = 0, limit: number = 10, category?: string, searchTerm?: string) {
         try {
-            const findProducts = await ProductsModel.find().lean()
+            const query: any = {};
+    
+            // Filtra por categoría si se pasa un valor
+            if (category) {
+                query.category = category;
+            }
+    
+            // Filtra por nombre si se pasa un término de búsqueda
+            if (searchTerm) {
+                query.name = { $regex: searchTerm, $options: 'i' }; // Insensitive a mayúsculas y minúsculas
+            }
+    
+            // Obtén los productos con los filtros aplicados
+            const findProducts = await ProductsModel.find(query)
+                .skip(skip)
+                .limit(limit)
+                .lean();
+    
+            if (findProducts.length === 0) throw new ResponseErrors(ERROR_TYPES.NOT_FOUND, 404);
+    
+            return findProducts;
+        } catch (err: any) {
+            throw err instanceof Error ? err : new Error(err.message || "Error desconocido");
+        }
+    }
 
-            if(findProducts.length === 0) throw new ResponseErrors(ERROR_TYPES.NOT_FOUND, 404)
+    async countFilteredProducts(category?: string, searchTerm?: string) {
+        try {
+            const query: any = {};
+    
+            if (category) {
+                query.category = category;
+            }
+    
+            if (searchTerm) {
+                query.name = { $regex: searchTerm, $options: 'i' };
+            }
+    
+            return await ProductsModel.countDocuments(query);
+        } catch (err: any) {
+            throw err instanceof Error ? err : new Error(err.message || "Error desconocido");
+        }
+    }
+    
+    
 
-            return findProducts
-            
+    async countProducts() {
+        try {
+            return await ProductsModel.countDocuments(); // Retorna el conteo total de productos
         } catch (err: any) {
             throw err instanceof Error ? err : new Error(err.message || "Error desconocido");
         }
@@ -46,15 +89,15 @@ export class Products {
         }
     }
     
-    async createProduct (data: IProduct, file?: { buffer: Buffer, mimetype: string }) {
+    async createProduct(data: IProduct, file?: { buffer: Buffer, mimetype: string }) {
         try {
-
-            if(typeof data === "string"){
-                data = JSON.parse(data)
+    
+            if (typeof data === "string") {
+                data = JSON.parse(data);
             }
-
+    
             let image: Picture | undefined;
-
+    
             if (file) {
                 const uploadResult = await uploadCloudinaryImage(file);
                 image = {
@@ -62,20 +105,28 @@ export class Products {
                     public_id: uploadResult.public_id,
                 };
             }  
-
-
+    
+            // Obtener el último producto ordenado por el código en orden descendente
+            const getLastProduct = await ProductsModel.findOne().sort({ code: -1 });
+    
+            // Si se encontró el último producto, incrementar su código en 1
+            const newCode: number = getLastProduct && getLastProduct.code ? getLastProduct?.code + 1 : 1000;  // Si no hay productos, iniciar con 1
+    
+            // Crear el nuevo producto con el nuevo código
             const newProduct: IProduct = new ProductsModel({
                 ...data,
                 created: new Date(),
-                picture: image || DEFAULT_PIC
-            })
-
-            await newProduct.save()
-            return {ok: true, message: SUCCESS_TYPES.CREATED}
+                picture: image || DEFAULT_PIC,
+                code: newCode
+            });
+    
+            await newProduct.save();
+            return { ok: true, message: SUCCESS_TYPES.CREATED };
         } catch (err: any) {
             throw err instanceof Error ? err : new Error(err.message || "Error desconocido");
         }
     }
+    
 
     async updateProduct (_id: string, data: IProduct, file?: { buffer: Buffer, mimetype: string }) {
         try {

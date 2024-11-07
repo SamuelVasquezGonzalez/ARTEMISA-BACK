@@ -12,7 +12,8 @@ const ProductsSchema: Schema = new Schema ({
         public_id: {type: String, default: ""},
         url: {type: String, default: "https://res.cloudinary.com/appsftw/image/upload/v1725911983/mayw65ww5edphgs4rfng.jpg"}
     },
-    created: {type: Date, default: new Date()}
+    created: {type: Date, default: new Date()},
+    code: {type: Number, default: 1000}
 })
 
 export const ProductsModel = model<IProduct>("product", ProductsSchema)

@@ -9,6 +9,7 @@ export interface IProduct extends Document {
     picture: Picture,
     created: Date
     buyPrice: number
+    code?: number
 }
 
 export interface IProductSale extends IProduct{
@@ -17,6 +18,7 @@ export interface IProductSale extends IProduct{
 
 
 export interface ISales extends Document {
+    isForAll?: boolean,
     moneyReturned?: number
     consecutive?: number
     idClient?: string,

@@ -73,6 +73,25 @@ export const getSalesByCategory = async (req: Request, res: Response) => {
     }
 };
 
+export const getProductsWithLowStock = async (req: Request, res: Response) => {
+    try {
+        // Obtener productos con stock <= 5
+        const findProduct = await ProductsModel.find({ stock: { $lte: 2 } });
+
+        // Si se encontraron productos, devolverlos en la respuesta
+        return res.status(200).json({
+            message: "Productos con stock bajo encontrados",
+            data: findProduct,
+        });
+
+    } catch (err: any) {
+        // Manejo de errores
+        return res.status(err.code || 500).json({
+            message: err.message,
+            code: err.code,
+        });
+    }
+}
 
 export const getSalesByPaymentMethod = async (req: Request, res: Response) => {
     try {
@@ -131,6 +150,7 @@ export const getTopProducts = async (req: Request, res: Response) => {
                     buyPrice: product?.buyPrice || 0,
                     count: item.count,
                     price: product?.price || 0,
+                    code: product?.code,
                     picture: product?.picture || {
                         public_id: "",
                         url: "https://res.cloudinary.com/appsftw/image/upload/v1725911983/mayw65ww5edphgs4rfng.jpg"
