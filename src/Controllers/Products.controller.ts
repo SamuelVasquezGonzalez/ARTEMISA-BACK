@@ -40,7 +40,7 @@ export const getProducts = async (req: Request, res: Response) => {
 
 
 export const getFilteredProducts = async (req: Request, res: Response) => {
-    const { category, searchTerm, page = 1, limit = 10 } = req.query;
+    const { category, searchTerm, code, page = 1, limit = 10 } = req.query;
 
     try {
         const skip = (Number(page) - 1) * Number(limit);
@@ -61,6 +61,10 @@ export const getFilteredProducts = async (req: Request, res: Response) => {
             // Utiliza la expresión regular para hacer la búsqueda en el nombre
             filterConditions.name = { $regex: new RegExp(searchQuery, "i") }; // "i" hace la búsqueda insensible a mayúsculas
         }
+
+        if(code !== 'null' && code !== 'NaN'){
+          filterConditions.code = code
+      }
 
         const products = await ProductsModel.find(filterConditions)
             .skip(skip)
@@ -150,119 +154,129 @@ export const deleteProduct = async (req: Request, res: Response) => {
 }
 
 
-
 export const generateProductExcel = async (req: Request, res: Response) => {
-    try {
-      // Obtener todos los productos de la base de datos y ordenarlos por stock
-      const products = await ProductsModel.find().sort({ stock: 1 });
-  
-      // Crear un nuevo libro de Excel
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet("Inventario de Productos");
-  
-      // Título principal de la hoja
-      const titleRow = worksheet.addRow(["Inventario de Productos - Artemisa"]);
-      titleRow.font = { name: "Arial", size: 16, bold: true };
-      titleRow.alignment = { vertical: "middle", horizontal: "center" };
-      worksheet.mergeCells(`A1:F1`);
-      worksheet.addRow([]);
-  
-      // Cálculos de estadísticas
-      let totalEnMecanica = 0;
-      let lowStockCount = 0;
-      products.forEach((product) => {
-        totalEnMecanica += product.price * product.stock;
-        if (product.stock <= 5) lowStockCount += 1;
-      });
-  
-      // Formateo del total en mecánica para ser más legible
-      const totalEnMecanicaFormatted = new Intl.NumberFormat("es-ES", {
-        style: "currency",
-        currency: "USD",
-      }).format(totalEnMecanica);
-  
-      // Agregar sección de estadísticas más atractiva
-      worksheet.addRow(["Estadísticas"]); // Encabezado de estadísticas
-      const statsRow1 = worksheet.addRow(["Total en Mecánica:", totalEnMecanicaFormatted]);
-      const statsRow2 = worksheet.addRow(["Productos en Low Stock:", lowStockCount]);
-  
-      [statsRow1, statsRow2].forEach((row) => {
-        row.font = { name: "Arial", size: 12, bold: true };
-        row.alignment = { vertical: "middle", horizontal: "left" };
-      });
-  
-      worksheet.addRow([]); // Espacio después de las estadísticas
-  
-      // Definir encabezados de columnas
-      worksheet.columns = [
-        { header: "Nombre", key: "name", width: 30 },
-        { header: "Categoría", key: "category", width: 20 },
-        { header: "Precio Venta", key: "price", width: 15 },
-        { header: "Precio Compra", key: "buyPrice", width: 15 },
-        { header: "Stock", key: "stock", width: 10 },
-        { header: "Código", key: "code", width: 15 },
-      ];
-  
-      // Estilo de encabezados de columnas
-      const headerRow = worksheet.getRow(8);
-      headerRow.font = { name: "Arial", bold: true, color: { argb: "FFFFFFFF" } };
-      headerRow.fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "FF333399" },
+  try {
+    // Obtener todos los productos de la base de datos y ordenarlos por stock
+    const products = await ProductsModel.find().sort({ stock: 1 });
+
+    // Crear un nuevo libro de Excel
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Inventario de Productos");
+
+    const titleRow = worksheet.addRow(["Inventario de productos actuales - Artemisa"]);
+    titleRow.font = { name: "Arial", size: 14, bold: true };
+    titleRow.alignment = { vertical: "middle", horizontal: "center" };
+    worksheet.mergeCells(`A1:F1`);
+    worksheet.addRow([]);
+
+    // Cálculos de estadísticas
+    let totalEnMecanica = 0;
+    let lowStockCount = 0;
+    products.forEach((product) => {
+      totalEnMecanica += product.price * product.stock;
+      if (product.stock <= 5) lowStockCount += 1;
+    });
+
+    // Formateo del total en mecánica para ser más legible
+    const totalEnMecanicaFormatted = new Intl.NumberFormat("es-ES", {
+      style: "currency",
+      currency: "USD",
+    }).format(totalEnMecanica);
+
+    const statsRow1 = worksheet.addRow(["Total en Mercancia:", totalEnMecanicaFormatted]);
+    const statsRow2 = worksheet.addRow(["Cantidad de productos:", products.length]);
+
+    [statsRow1, statsRow2].forEach((row) => {
+      row.font = { name: "Arial", size: 12, bold: true };
+      row.alignment = { vertical: "middle", horizontal: "left" };
+    });
+
+    worksheet.addRow([]); // Espacio después de las estadísticas
+
+    // Estilo de encabezados de columnas
+    const headerRow = worksheet.getRow(8);
+    headerRow.font = { name: "Arial", bold: true, color: { argb: "FFFFFFFF" } };
+    headerRow.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF333399" },
+    };
+    headerRow.alignment = { horizontal: "center" };
+
+    worksheet.columns = [
+      { header: "Nombre", key: "name", width: 30, },
+      { header: "Categoría", key: "category", width: 20 },
+      { header: "Precio Venta", key: "price", width: 15 },
+      { header: "Precio Compra", key: "buyPrice", width: 15 },
+      { header: "Stock", key: "stock", width: 10 },
+      { header: "Inventario de productos actuales - Artemisa", key: "code", width: 15 },
+    ];
+
+    const productsHeaders = worksheet.addRow(["Nombre", "Categoria", "Precio venta", "Precio compra", "En inventario", "Codigo"])
+
+    productsHeaders.eachCell((cell) => {
+      cell.border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
       };
-      headerRow.alignment = { horizontal: "center" };
-  
-      // Agregar productos a la tabla
-      products.forEach((product) => {
-        const row = worksheet.addRow(product.toObject());
-        row.getCell("price").numFmt = "$#,##0.00";
-        row.getCell("buyPrice").numFmt = "$#,##0.00";
-  
-        // Colores condicionales en stock
-        if (product.stock < 6) {
-          row.getCell("stock").fill = {
-            type: "pattern",
-            pattern: "solid",
-            fgColor: { argb: "FFFF0000" },
-          };
-        } else if (product.stock >= 6 && product.stock <= 8) {
-          row.getCell("stock").fill = {
-            type: "pattern",
-            pattern: "solid",
-            fgColor: { argb: "FFFFA500" },
-          };
-        } else {
-          row.getCell("stock").fill = {
-            type: "pattern",
-            pattern: "solid",
-            fgColor: { argb: "FF00FF00" },
-          };
-        }
-  
-        // Bordes de las celdas
-        row.eachCell((cell) => {
-          cell.border = {
-            top: { style: "thin" },
-            left: { style: "thin" },
-            bottom: { style: "thin" },
-            right: { style: "thin" },
-          };
-        });
+      cell.font = {bold: true}
+    })
+
+    // Agregar productos a la tabla
+    products.forEach((product) => {
+      const row = worksheet.addRow({
+        ...product.toObject(),
+        code: `#${product?.code?.toString().padStart(4, '0')}` // Formato de código con #
       });
-  
-      // Configurar archivo para descarga
-      res.setHeader(
-        "Content-Type",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-      );
-      res.setHeader("Content-Disposition", "attachment; filename=Inventario-Artemisa.xlsx");
-  
-      // Escribir el archivo en el flujo de respuesta
-      await workbook.xlsx.write(res);
-      res.status(200).end();
-    } catch (error) {
-      console.error("Error al generar el archivo Excel:", error);
-      res.status(500).json({ message: "Error al generar el archivo Excel" });
-    }
-  };
+      row.getCell("price").numFmt = "$#,##0.00";
+      row.getCell("buyPrice").numFmt = "$#,##0.00";
+
+      // Colores condicionales en stock
+      if (product.stock < 6) {
+        row.getCell("stock").fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FFFF0000" },
+        };
+      } else if (product.stock >= 6 && product.stock <= 8) {
+        row.getCell("stock").fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FFFFA500" },
+        };
+      } else {
+        row.getCell("stock").fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FF00FF00" },
+        };
+      }
+
+      // Bordes de las celdas
+      row.eachCell((cell) => {
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          bottom: { style: "thin" },
+          right: { style: "thin" },
+        };
+      });
+    });
+
+    // Configurar archivo para descarga
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader("Content-Disposition", "attachment; filename=Inventario-Artemisa.xlsx");
+
+    // Escribir el archivo en el flujo de respuesta
+    await workbook.xlsx.write(res);
+    res.status(200).end();
+  } catch (error) {
+    console.error("Error al generar el archivo Excel:", error);
+    res.status(500).json({ message: "Error al generar el archivo Excel" });
+  }
+};

@@ -20,7 +20,7 @@ export class Products {
     }
 
 
-    async getProducts(skip: number = 0, limit: number = 10, category?: string, searchTerm?: string) {
+    async getProducts(skip: number = 0, limit: number = 10, category?: string, searchTerm?: string, code?: number) {
         try {
             const query: any = {};
     
@@ -34,6 +34,9 @@ export class Products {
                 query.name = { $regex: searchTerm, $options: 'i' }; // Insensitive a mayúsculas y minúsculas
             }
     
+            if(code){
+                query.code = code
+            }
             // Obtén los productos con los filtros aplicados
             const findProducts = await ProductsModel.find(query)
                 .skip(skip)
