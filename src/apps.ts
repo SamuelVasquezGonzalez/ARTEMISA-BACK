@@ -13,7 +13,7 @@ export const app = express();
 
 
 const corsOptions: CorsOptions = {
-    origin: ["http://localhost:5173", "http://localhost:5174", "https://i-artemisa.netlify.app"],
+    origin: ["http://localhost:5173", "http://localhost:5174", "https://i-artemisa.netlify.app", "http://i-artemisa.netlify.app", "https://i-artemisa.netlify.app/", "http://i-artemisa.netlify.app/"],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     optionsSuccessStatus: 204
 }
